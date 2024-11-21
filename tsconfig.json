@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "jsx": "react", // 或 "react-jsx", "react-jsxdev", "react-native"
+      "module": "esnext", // 或 "commonjs", "amd", "system", "umd"
+      "outDir": "./dist",
+      "moduleResolution": "node",
+      "target": "es5", // 或 "es3", "es5", "es6"/"es2015", "es2016", "es2017", "es2018", "es2019", "es2020", "es2021", "es2022"
+      "lib": ["dom", "dom.iterable", "esnext"],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "noEmit": false,
+      "importHelpers": true,
+      "downlevelIteration": true,
+      "strictNullChecks": true,
+      "noImplicitOverride": true,
+      "noPropertyAccessFromIndexSignature": true
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules"]
+  }
