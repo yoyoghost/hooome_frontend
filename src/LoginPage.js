@@ -13,7 +13,7 @@ const LoginPage = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       message.success('登录成功');
       // 重定向到首页
-      window.location.href = '/home';
+      window.location.href = '/';
     } catch (error) {
       message.error('登录失败');
     } finally {

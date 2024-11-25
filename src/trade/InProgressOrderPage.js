@@ -27,6 +27,11 @@ const columns = [
     dataIndex: 'name',
     key: 'name',
     fixed: 'left',
+    filters: [{
+      text: 'Joe',
+      value: 'Joe',
+    }],
+    onFilter: (value, record) => record.name.indexOf(value) === 0,
   },
   {
     title: '交易日期',

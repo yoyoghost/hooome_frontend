@@ -3,13 +3,13 @@ import { Typography } from 'antd';
 
 const { Title } = Typography;
 
-const tradeDashBord = () => {
+const tradeDashboard = () => {
   return (
     <div>
-      <Title level={2}>tradeDashBord</Title>
+      <Title level={2}>tradeDashboard</Title>
       <p>这里是dashboard</p>
     </div>
   );
 };
 
-export default tradeDashBord;
+export default tradeDashboard;
