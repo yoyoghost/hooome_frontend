@@ -6,23 +6,23 @@ const menuConfig = [
         icon: <StockOutlined />,
         children: [
             {
-                key: '/trade/tradeDashboard',
+                key: 'tradeDashboard',
                 label: 'tradeDashboard',
                 icon: <AccountBookOutlined />
             
             },
             {
-                key: '/trade/inProgressOrder',
+                key: 'inProgressOrder',
                 label: 'inProgressOrder',
                 icon: <PayCircleOutlined />
             },
             {
-                key: '/trade/completeOrder',
+                key: 'completeOrder',
                 label: 'completeOrder',
                 icon: <SmileOutlined />
             },
             {
-                key: '/page1',
+                key: 'page1',
                 label: 'page1',
                 icon: <PayCircleOutlined />
             },

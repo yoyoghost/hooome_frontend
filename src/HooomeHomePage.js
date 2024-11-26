@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import HooomeMenu from './HooomeMenu';
 import HomeCombinRoutes from './routes/HomeCombinRoutes';
 import { Breadcrumb, Layout, theme } from 'antd';
-const { Header, Content, Footer } = Layout;
+const { Content, Footer } = Layout;
 
 const HooomeHomePage = () => {
 
