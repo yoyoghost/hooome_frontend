@@ -25,9 +25,28 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   flex: 1;
+  width: 100%;
+  min-height: 100%;
+}
+
+.ant-breadcrumb {
+  height: 8vh;
+  padding: 16px 0px;
 }
 
 .ant-layout-content {
   flex: 1;
   overflow: auto;
+  height: calc(100vh - 16vh);
+}
+
+.ant-layout-footer {
+  /* flex: 1; */
+  overflow: auto;
+  text-align: center;
+  height: 8vh;
+}
+
+.ant-table-container {
+  height: 100%;
 }

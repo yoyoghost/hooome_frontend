@@ -7,7 +7,7 @@ const HooomeBasicRoutes = () => (
     <Router>
         <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<LoginPage />} />
             <Route path="/trade/*" element={<HomePage />} />
         </Routes>
     </Router>

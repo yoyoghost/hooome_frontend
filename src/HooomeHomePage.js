@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import HooomeMenu from './HooomeMenu';
 import HomeCombinRoutes from './routes/HomeCombinRoutes';
 import { Breadcrumb, Layout, theme } from 'antd';
+import './index.css';
 const { Content, Footer } = Layout;
 
 const HooomeHomePage = () => {
@@ -23,7 +24,7 @@ const HooomeHomePage = () => {
             height: '100%'
           }}
         >
-          <Breadcrumb style={{ margin: '16px 0' }}>
+          <Breadcrumb>
             <Breadcrumb.Item>Home</Breadcrumb.Item>
             <Breadcrumb.Item>{location.pathname.split('/').pop()}</Breadcrumb.Item>
           </Breadcrumb>
@@ -38,11 +39,7 @@ const HooomeHomePage = () => {
           >
             <HomeCombinRoutes />
           </Content>
-          <Footer
-            style={{
-              textAlign: 'center',
-            }}
-          >◎hooome</Footer>
+          <Footer>◎hooome</Footer>
         </Layout>
       </Layout>
     </Layout>
