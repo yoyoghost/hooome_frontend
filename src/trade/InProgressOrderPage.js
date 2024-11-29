@@ -1,28 +1,5 @@
 import React from 'react';
 import { Table } from 'antd';
-import { createStyles } from 'antd-style';
-import '../index.css';
-
-const useStyle = createStyles(({ css, token }) => {
-  const { antCls } = token;
-  return {
-    customTable: css`
-      ${antCls}-table {
-        ${antCls}-table-container {
-          ${antCls}-table-body {
-            height: '100%';
-            max-height: '100%';
-          },
-          ${antCls}-table-content {
-            scrollbar-width: thin;
-            scrollbar-color: #eaeaea transparent;
-            scrollbar-gutter: stable;
-          }
-        }
-      }
-    `,
-  };
-});
 
 const columns = [
   {
@@ -93,10 +70,8 @@ const dataSource = Array.from({
 }));
 
 const InProgressOrderPage = () => {
-  const { styles } = useStyle();
   return (
     <Table 
-      // className={styles.customTable}
       columns={columns}
       dataSource={dataSource}
       scroll={{

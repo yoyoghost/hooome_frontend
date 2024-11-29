@@ -47,6 +47,8 @@ html, body, #root {
   height: 8vh;
 }
 
-.ant-table-container {
-  height: 100%;
+.ant-table-body {
+  overflow: auto;
+  max-height: none !important;
+  min-height: 375px;
 }
