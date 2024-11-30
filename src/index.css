@@ -30,25 +30,25 @@ html, body, #root {
 }
 
 .ant-breadcrumb {
-  height: 8vh;
+  height: 5vh;
   padding: 16px 0px;
 }
 
 .ant-layout-content {
   flex: 1;
   overflow: auto;
-  height: calc(100vh - 16vh);
+  height: calc(100vh - 11vh);
 }
 
 .ant-layout-footer {
   /* flex: 1; */
   overflow: auto;
   text-align: center;
-  height: 8vh;
+  height: 6vh;
 }
 
 .ant-table-body {
-  overflow: auto;
   max-height: none !important;
+  overflow: visible !important;
   min-height: 375px;
 }

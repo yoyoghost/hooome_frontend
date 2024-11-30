@@ -1,32 +1,32 @@
-import { StockOutlined, PayCircleOutlined, AccountBookOutlined, SmileOutlined } from '@ant-design/icons';
+import { StockOutlined} from '@ant-design/icons';
+import TradeRoute from './routes/TradeRoutes.js';
+
 const menuConfig = [
     {
         key: 'tradeTools',
         label: 'tradeTools',
         icon: <StockOutlined />,
-        children: [
-            {
-                key: 'tradeDashboard',
-                label: 'tradeDashboard',
-                icon: <AccountBookOutlined />
-            
-            },
-            {
-                key: 'inProgressOrder',
-                label: 'inProgressOrder',
-                icon: <PayCircleOutlined />
-            },
-            {
-                key: 'completeOrder',
-                label: 'completeOrder',
-                icon: <SmileOutlined />
-            },
-            {
-                key: 'page1',
-                label: 'page1',
-                icon: <PayCircleOutlined />
-            },
-        ],
+        children: TradeRoute
     }]
 
 export default menuConfig;
+
+
+// [
+//     {
+//         key: 'tradeDashboard',
+//         label: 'tradeDashboard',
+//         icon: <AccountBookOutlined />
+    
+//     },
+//     {
+//         key: 'inProgressOrder',
+//         label: 'inProgressOrder',
+//         icon: <PayCircleOutlined />
+//     },
+//     {
+//         key: 'completeOrder',
+//         label: 'completeOrder',
+//         icon: <SmileOutlined />
+//     }
+// ],

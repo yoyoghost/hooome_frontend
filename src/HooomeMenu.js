@@ -19,6 +19,7 @@ const HooomeMenu = () => {
         console.log('useEffect selectedKey:', selectedKey);
         navigate(selectedKey);
     }, [selectedKey]);
+    
     return (
         <Sider width={200} className="site-layout-background" collapsed={collapsed} onCollapse={setCollapsed}>
             <Menu mode="inline"
