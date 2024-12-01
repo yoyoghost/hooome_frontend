@@ -1,4 +1,4 @@
-import React , { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Input, message, Select } from 'antd';
 import api from '../tools/api.js';
 
@@ -45,16 +45,19 @@ const StockInfoListPage = () => {
         },
     ];
 
-    const initialData = Array.from({
-        length: 5,
-    }).map((_, i) => ({
-        key: i,
-        stock_name: `Edward King ${i}`,
-        stock_type: 1,
-        stock_status: `London, Park Lane no. ${i}`,
-    }));
+    const [stocks, setStocks] = useState(null);
+    useEffect(() => {
+        const getStockInfoList = async () => {
+            try {
+                const response = (await api.post('/trade/getStockInfoList'));
+                setStocks(response.data);
+            } catch (error) {
+                console.error('Failed to fetch stockType:', error);
+            }
+        };
+        getStockInfoList();
+    }, []);
 
-    const [stocks, setStocks] = useState(initialData);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingStock, setEditingStock] = useState(null);
 
@@ -66,6 +69,7 @@ const StockInfoListPage = () => {
 
     // 编辑
     const handleEditStock = (stock) => {
+        console.log("edit stock info: ", stock)
         setEditingStock(stock);
         setIsModalVisible(true);
     };
@@ -73,10 +77,13 @@ const StockInfoListPage = () => {
     // 关闭弹窗
     const handleCancel = (form) => {
         form.resetFields();
+        // 关闭弹窗
         setIsModalVisible(false);
+        // 清除编辑的数据
+        setEditingStock(null);
     };
 
-    const handleSubmit = (values) => {
+    const handleSubmit = (values, form) => {
         console.info("value: " + JSON.stringify(values));
         const updatedValues = { ...values };
 
@@ -89,22 +96,36 @@ const StockInfoListPage = () => {
             message.success('修改成功');
         } else {
             // 新增股票
-            const newStock = { ...updatedValues }; // 生成一个新的 ID
+            const newStock = addStockInfo(values);
             setStocks([...stocks, newStock]);
             message.success('新增成功');
         }
 
-        setIsModalVisible(false); // 关闭弹窗
+        // 关闭弹窗
+        setIsModalVisible(false);
+        // 清除编辑的数据
+        setEditingStock(null);
+        // 重置表单数据
+        form.resetFields();
+    };
+
+    const addStockInfo = async (stock) => {
+        try {
+            const response = (await api.post('/trade/addStockInfo', stock));
+            return response.data;
+        } catch (error) {
+            console.error('Failed to fetch stockType:', error);
+        }
     };
 
     return (
         <div>
-            <Button type="primary" onClick={handleAddStock} style={{margin: '0px 0px 10px 0px'}}>
+            <Button type="primary" onClick={handleAddStock} style={{ margin: '0px 0px 10px 0px' }}>
                 新增股票
             </Button>
             <Table
                 columns={columns}
-                dataSource={initialData}
+                dataSource={stocks}
                 scroll={{
                     x: 'max-content',
                     y: 55 * 5,
@@ -132,27 +153,31 @@ const StockInfoListPage = () => {
 
 
 const StockInfoForm = ({ initialValues, onSubmit, onCancel }) => {
-    
-    const [stockTypeOptions, setStockTypeOptions] = useState([]);
-    const getStockTypes = async () => {
-        try {
-            const response = await api.post('/trade/getStockType');
-            setStockTypeOptions(response.data);
-        } catch (error) {
-            console.error('Failed to fetch stockType:', error);
-        }
-    };
 
+    const [stockTypeOptions, setStockTypeOptions] = useState([]);
     useEffect(() => {
+        const getStockTypes = async () => {
+            try {
+                const response = await api.post('/trade/getStockType');
+                setStockTypeOptions(response.data);
+            } catch (error) {
+                console.error('Failed to fetch stockType:', error);
+            }
+        };
         getStockTypes();
-      }, []);
+    }, []);
+
+    const handleOnFinish = (values) => {
+        // 调用父组件的提交方法
+        onSubmit(values, form);
+    };
 
     const [form] = Form.useForm();
     return (
         <Form
             form={form}
             initialValues={initialValues || { stock_name: '', stock_minimum_holding_period: 0, stock_remark: '' }}
-            onFinish={onSubmit}
+            onFinish={handleOnFinish}
             layout="vertical"
         >
             <Form.Item
