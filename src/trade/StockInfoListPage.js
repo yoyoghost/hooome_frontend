@@ -52,18 +52,37 @@ const StockInfoListPage = () => {
                 const response = (await api.post('/trade/getStockInfoList'));
                 setStocks(response.data);
             } catch (error) {
-                console.error('Failed to fetch stockType:', error);
+                console.error('Failed to fetch stockInfo list:', error);
             }
         };
         getStockInfoList();
     }, []);
 
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [editingStock, setEditingStock] = useState(null);
+    const [stockTypeOptions, setStockTypeOptions] = useState([]);
+    useEffect(() => {
+        const getStockTypes = async () => {
+            try {
+                const response = await api.post('/trade/getStockType');
+                setStockTypeOptions(response.data);
+            } catch (error) {
+                console.error('Failed to fetch stockType:', error);
+            }
+        };
+        getStockTypes();
+    }, []);
 
+    // 控制modal
+    const [isModalVisible, setIsModalVisible] = useState(false);
+
+    // 控制编辑的
+    const [editingStock, setEditingStock] = useState(null);
+    const [form] = Form.useForm();
+    const initialStock = { stock_name: '', stock_minimum_holding_period: 0, stock_remark: '', stock_type : 1};  
     // 打开新增/编辑弹窗
     const handleAddStock = () => {
+        // form.resetFields();
         setEditingStock(null); // 重置编辑
+        form.setFieldsValue(initialStock);
         setIsModalVisible(true);
     };
 
@@ -71,19 +90,20 @@ const StockInfoListPage = () => {
     const handleEditStock = (stock) => {
         console.log("edit stock info: ", stock)
         setEditingStock(stock);
+        form.setFieldsValue(stock);
         setIsModalVisible(true);
     };
 
     // 关闭弹窗
-    const handleCancel = (form) => {
-        form.resetFields();
+    const handleCancel = () => {
+        // form.resetFields();
         // 关闭弹窗
         setIsModalVisible(false);
         // 清除编辑的数据
         setEditingStock(null);
     };
 
-    const handleSubmit = (values, form) => {
+    const handleSubmit = (values) => {
         console.info("value: " + JSON.stringify(values));
         const updatedValues = { ...values };
 
@@ -140,92 +160,60 @@ const StockInfoListPage = () => {
                 maskClosable='false'
                 closable={false}
             >
-                <StockInfoForm
-                    initialValues={editingStock}
-                    onSubmit={handleSubmit}
-                    onCancel={handleCancel}
-                />
+                <Form
+                    form={form}
+                    initialValues={editingStock || { stock_name: '', stock_minimum_holding_period: 0, stock_remark: '' }}
+                    onFinish={handleSubmit}
+                    layout="vertical"
+                >
+                    <Form.Item
+                        name="stock_name"
+                        label="股票名称"
+                        rules={[{ required: true, message: 'Please input stock name!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+                    <Form.Item
+                        name="stock_type"
+                        label="股票类型"
+                        rules={[{ required: true, message: 'Please select stock type!' }]}
+                    >
+                        <Select placeholder="股票类型">
+                            {stockTypeOptions.map(option => (
+                                <Select.Option key={option.code} value={option.code}>
+                                    {option.desc}
+                                </Select.Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="stock_minimum_holding_period"
+                        label="最短持有期/天"
+                        rules={[{ required: true, message: 'Please input minimum holding period!' }]}
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="stock_remark"
+                        label="股票备注"
+                    >
+                        <Input />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            提交
+                        </Button>
+                        <Button onClick={handleCancel} style={{ marginLeft: '10px' }}>
+                            取消
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
     );
 };
-
-
-
-const StockInfoForm = ({ initialValues, onSubmit, onCancel }) => {
-
-    const [stockTypeOptions, setStockTypeOptions] = useState([]);
-    useEffect(() => {
-        const getStockTypes = async () => {
-            try {
-                const response = await api.post('/trade/getStockType');
-                setStockTypeOptions(response.data);
-            } catch (error) {
-                console.error('Failed to fetch stockType:', error);
-            }
-        };
-        getStockTypes();
-    }, []);
-
-    const handleOnFinish = (values) => {
-        // 调用父组件的提交方法
-        onSubmit(values, form);
-    };
-
-    const [form] = Form.useForm();
-    return (
-        <Form
-            form={form}
-            initialValues={initialValues || { stock_name: '', stock_minimum_holding_period: 0, stock_remark: '' }}
-            onFinish={handleOnFinish}
-            layout="vertical"
-        >
-            <Form.Item
-                name="stock_name"
-                label="股票名称"
-                rules={[{ required: true, message: 'Please input stock name!' }]}
-            >
-                <Input />
-            </Form.Item>
-            <Form.Item
-                name="stock_type"
-                label="股票类型"
-                rules={[{ required: true, message: 'Please select stock type!' }]}
-            >
-                <Select placeholder="股票类型">
-                    {stockTypeOptions.map(option => (
-                        <Select.Option key={option.code} value={option.code}>
-                            {option.desc}
-                        </Select.Option>
-                    ))}
-                </Select>
-            </Form.Item>
-
-            <Form.Item
-                name="stock_minimum_holding_period"
-                label="最短持有期/天"
-                rules={[{ required: true, message: 'Please input minimum holding period!' }]}
-            >
-                <Input />
-            </Form.Item>
-
-            <Form.Item
-                name="stock_remark"
-                label="股票备注"
-            >
-                <Input />
-            </Form.Item>
-
-            <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    提交
-                </Button>
-                <Button onClick={() => onCancel(form)} style={{ marginLeft: '10px' }}>
-                    取消
-                </Button>
-            </Form.Item>
-        </Form>
-    );
-}
 
 export default StockInfoListPage;
