@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message, Select, InputNumber } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Select, InputNumber, Space, Typography, Popconfirm } from 'antd';
 import api from '../tools/api.js';
 
 const StockInfoListPage = () => {
@@ -90,10 +90,13 @@ const StockInfoListPage = () => {
         setFilteredInfoData(filters);
     };
 
+    // TODO 删除后列表删除
+    // TODO 状态更新后列表状态更新，编辑后列表记录更新
+
     const columns = [
         {
             title: '股票名称',
-            width: 100,
+            width: 200,
             dataIndex: 'stock_name',
             key: 'stock_name',
         },
@@ -130,10 +133,25 @@ const StockInfoListPage = () => {
             title: '操作',
             key: 'operation',
             fixed: 'right',
-            width: 100,
-            render: (text, record) => (
-                <Button onClick={() => handleEditStock(record)}>编辑</Button>
-            ),
+            width: 150,
+            render: (text, record) => {
+                const currentStockStatusDesc = record.stock_status;
+                const currentStockStatus =  Object.keys(stockStatusMap).find(key => stockStatusMap[key] === currentStockStatusDesc);
+                const btnTetx = currentStockStatus === '1' ? '清仓': currentStockStatus === '2' ? '启用': '异常';
+                return (
+                    <Space size="middle">
+                    <Typography.Link onClick={() => handleEditStock(record)}>
+                        编辑
+                    </Typography.Link>
+                    <Popconfirm title={`是否确定${btnTetx}?`} onConfirm={() => handleDeleteStock(currentStockStatus, record)}>
+                        <a>{btnTetx}</a>
+                    </Popconfirm>
+                    <Popconfirm title="是否确定删除?" onConfirm={() => handleDeleteStock(record)}>
+                        <a>删除</a>
+                    </Popconfirm>
+                </Space>
+                )
+            },
         },
     ];
 
@@ -189,6 +207,10 @@ const StockInfoListPage = () => {
         setEditingStock(stock);
         form.setFieldsValue(stock);
         setIsModalVisible(true);
+    };
+
+    const handleDeleteStock = (stock) => {
+        console.log("delete stock info: ", stock)
     };
 
     // 关闭弹窗
