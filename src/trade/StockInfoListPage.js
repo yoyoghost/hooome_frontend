@@ -1,8 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, message, Select } from 'antd';
+import { Table, Button, Modal, Form, Input, message, Select, InputNumber } from 'antd';
 import api from '../tools/api.js';
 
 const StockInfoListPage = () => {
+
+    const [stockTypeOptions, setStockTypeOptions] = useState([]);
+    const [stockTypeMap, setStockTypeMap] = useState(null);
+    const [stockStatusList, setStockStatusList] = useState([]);
+    const [stockStatusMap, setStockStatusMap] = useState(null);
+    useEffect(() => {
+        const getStockTypes = async () => {
+            try {
+                api.post('/trade/getStockType').then(
+                    response => {
+                        console.info("getStockTypes: " + JSON.stringify(response.data));
+                        const stockTypeMapTemp = response.data.reduce((acc, item) => {
+                            acc[item.code] = item.desc;
+                            return acc;
+                        }, {});
+                        setStockTypeMap(stockTypeMapTemp);
+                        setStockTypeOptions(response.data);
+                    }
+                ).catch(error => {
+                    console.error('get stock type error:', error);
+                });
+
+            } catch (error) {
+                console.error('Failed to fetch stockType:', error);
+            }
+        };
+
+        const getStockStatus = async () => {
+            try {
+                api.post('/trade/getStockStatus').then(
+                    response => {
+                        console.info("getStockStatus: " + JSON.stringify(response.data));
+                        const stockStatusMapTemp = response.data.reduce((acc, item) => {
+                            acc[item.code] = item.desc;
+                            return acc;
+                        }, {});
+                        setStockStatusMap(stockStatusMapTemp);
+                        setStockStatusList(response.data);
+                    }
+                ).catch(error => {
+                    console.error('get stock status error:', error);
+                });
+
+            } catch (error) {
+                console.error('Failed to fetch stockStatus:', error);
+            }
+        };
+        getStockTypes();
+        getStockStatus();
+    }, []);
+
+    const [filteredInfo, setFilteredInfo] = useState({});
+    useEffect(() => {
+        const initFilteredInfo = () => {
+            if (stockTypeMap && stockStatusMap) {
+                let stockTypeFilterDate = [];
+                stockTypeOptions.forEach(item => {
+                    stockTypeFilterDate.push({ 'text': item['desc'], 'value': item['desc'] })
+                });
+
+                let stockStatusFilterDate = [];
+                stockStatusList.forEach(item => {
+                    stockStatusFilterDate.push({ 'text': item['desc'], 'value': item['desc'] })
+                });
+                let filteredInfoTemp = {};
+                filteredInfoTemp['stockTypeFilterDate'] = stockTypeFilterDate;
+                filteredInfoTemp['stockStatusFilterDate'] = stockStatusFilterDate;
+                console.log("stockStatusFilterDate: " + JSON.stringify(stockStatusFilterDate));
+                console.log("stockTypeFilterDate: " + JSON.stringify(stockTypeFilterDate));
+                console.log("filteredInfoTemp: " + JSON.stringify(filteredInfoTemp));
+                setFilteredInfo(filteredInfoTemp);
+            };
+        }
+        initFilteredInfo();
+    }, [stockTypeOptions, stockStatusList]);
+
+    // 重置筛选
+    const [filteredInfoData, setFilteredInfoData] = useState({});
+    const clearFilters = () => {
+        setFilteredInfoData({});
+    };
+
+    // 重置筛选，配合使用
+    const handleChange = (pagination, filters, sorter) => {
+        setFilteredInfoData(filters);
+    };
 
     const columns = [
         {
@@ -13,21 +99,27 @@ const StockInfoListPage = () => {
         },
         {
             title: '股票类型',
-            width: 100,
+            width: 130,
             dataIndex: 'stock_type',
             key: 'stock_type',
+            filters: filteredInfo['stockTypeFilterDate'],
+            filteredValue: filteredInfoData.stock_type || null,
+            onFilter: (value, record) => record.stock_type.indexOf(value) === 0,
         },
         {
             title: '最短持有期',
             dataIndex: 'stock_minimum_holding_period',
             key: 'stock_minimum_holding_period',
-            width: 150,
+            width: 130,
         },
         {
             title: '股票状态',
             dataIndex: 'stock_status',
             key: 'stock_status',
             width: 150,
+            filters: filteredInfo['stockStatusFilterDate'],
+            filteredValue: filteredInfoData.stock_status || null,
+            onFilter: (value, record) => record.stock_status.indexOf(value) === 0,
         },
         {
             title: '股票备注',
@@ -48,28 +140,33 @@ const StockInfoListPage = () => {
     const [stocks, setStocks] = useState(null);
     useEffect(() => {
         const getStockInfoList = async () => {
-            try {
-                const response = (await api.post('/trade/getStockInfoList'));
-                setStocks(response.data);
-            } catch (error) {
-                console.error('Failed to fetch stockInfo list:', error);
+            if (stockTypeMap && stockStatusMap) {
+                try {
+                    api.post('/trade/getStockInfoList').then(
+                        response => {
+                            var stocks = response.data;
+                            if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
+                                setStocks(null);
+                            } else {
+                                console.log("stockTypeMap: " + JSON.stringify(stockTypeMap));
+                                const newStocks = stocks.map(item => ({
+                                    ...item,
+                                    stock_type: stockTypeMap[item.stock_type] || '未知',
+                                    stock_status: stockStatusMap[item.stock_status] || '未知',
+                                }));
+                                setStocks(newStocks);
+                            }
+                        }
+                    ).catch(error => {
+                        console.error('get stock info list error:', error);
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch stockInfo list:', error);
+                }
             }
         };
         getStockInfoList();
-    }, []);
-
-    const [stockTypeOptions, setStockTypeOptions] = useState([]);
-    useEffect(() => {
-        const getStockTypes = async () => {
-            try {
-                const response = await api.post('/trade/getStockType');
-                setStockTypeOptions(response.data);
-            } catch (error) {
-                console.error('Failed to fetch stockType:', error);
-            }
-        };
-        getStockTypes();
-    }, []);
+    }, [stockTypeMap, stockStatusMap]);
 
     // 控制modal
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -77,7 +174,7 @@ const StockInfoListPage = () => {
     // 控制编辑的
     const [editingStock, setEditingStock] = useState(null);
     const [form] = Form.useForm();
-    const initialStock = { stock_name: '', stock_minimum_holding_period: 0, stock_remark: '', stock_type : 1};  
+    const initialStock = { stock_name: '', stock_minimum_holding_period: 0, stock_remark: '', stock_type: 1 };
     // 打开新增/编辑弹窗
     const handleAddStock = () => {
         // form.resetFields();
@@ -104,21 +201,37 @@ const StockInfoListPage = () => {
     };
 
     const handleSubmit = (values) => {
-        console.info("value: " + JSON.stringify(values));
         const updatedValues = { ...values };
 
         if (editingStock) {
-            // 编辑用户
+            // 编辑
+            console.info("edit value is: " + JSON.stringify(values));
             const updatedStock = stocks.map(stock =>
                 stock.id === editingStock.id ? { ...stock, ...updatedValues } : stock
             );
             setStocks(updatedStock);
             message.success('修改成功');
         } else {
-            // 新增股票
-            const newStock = addStockInfo(values);
-            setStocks([...stocks, newStock]);
-            message.success('新增成功');
+            console.info("add value is: " + JSON.stringify(values));
+            api.post('/trade/addStockInfo', values).then(response => {
+                console.info("add response:" + JSON.stringify(response))
+                const newStock = response.data;
+                console.info('before newStock is: ' + JSON.stringify(newStock));
+                const newStock1 = {
+                    ...newStock,
+                    stock_type: stockTypeMap[newStock.stock_type] || '未知',
+                    stock_status: stockStatusMap[newStock.stock_status] || '未知'
+                }
+                console.info('after newStock is: ' + JSON.stringify(newStock1));
+                if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
+                    setStocks([newStock1]);
+                } else {
+                    setStocks([...stocks, newStock1]);
+                }
+                message.success('新增成功');
+            }).catch(error => {
+                console.error('Error adding stock info:', error);
+            });
         }
 
         // 关闭弹窗
@@ -129,23 +242,18 @@ const StockInfoListPage = () => {
         form.resetFields();
     };
 
-    const addStockInfo = async (stock) => {
-        try {
-            const response = (await api.post('/trade/addStockInfo', stock));
-            return response.data;
-        } catch (error) {
-            console.error('Failed to fetch stockType:', error);
-        }
-    };
-
     return (
         <div>
             <Button type="primary" onClick={handleAddStock} style={{ margin: '0px 0px 10px 0px' }}>
                 新增股票
             </Button>
+            <Button type="dashed" onClick={clearFilters} style={{ margin: '0px 0px 10px 10px' }}>
+                重置筛选
+            </Button>
             <Table
                 columns={columns}
                 dataSource={stocks}
+                onChange={handleChange}
                 scroll={{
                     x: 'max-content',
                     y: 55 * 5,
@@ -192,7 +300,11 @@ const StockInfoListPage = () => {
                         label="最短持有期/天"
                         rules={[{ required: true, message: 'Please input minimum holding period!' }]}
                     >
-                        <Input />
+                        <InputNumber
+                            style={{
+                                width: '100%',
+                            }}
+                        />
                     </Form.Item>
 
                     <Form.Item
