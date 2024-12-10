@@ -8,7 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.22.1",
     "antd-style": "^3.7.1",
-    "axios": "^1.7.8",
+    "axios": "^1.7.9",
     "json-transforms": "^1.1.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
