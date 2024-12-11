@@ -13,7 +13,7 @@ const StockInfoListPage = () => {
             try {
                 api.post('/trade/getStockType').then(
                     response => {
-                        console.info("getStockTypes: " + JSON.stringify(response.data));
+                        // console.info("getStockTypes: " + JSON.stringify(response.data));
                         const stockTypeMapTemp = response.data.reduce((acc, item) => {
                             acc[item.code] = item.desc;
                             return acc;
@@ -34,7 +34,7 @@ const StockInfoListPage = () => {
             try {
                 api.post('/trade/getStockStatus').then(
                     response => {
-                        console.info("getStockStatus: " + JSON.stringify(response.data));
+                        // console.info("getStockStatus: " + JSON.stringify(response.data));
                         const stockStatusMapTemp = response.data.reduce((acc, item) => {
                             acc[item.code] = item.desc;
                             return acc;
@@ -60,19 +60,19 @@ const StockInfoListPage = () => {
             if (stockTypeMap && stockStatusMap) {
                 let stockTypeFilterDate = [];
                 stockTypeOptions.forEach(item => {
-                    stockTypeFilterDate.push({ 'text': item['desc'], 'value': item['desc'] })
+                    stockTypeFilterDate.push({ 'text': item['desc'], 'value': item['code'] })
                 });
 
                 let stockStatusFilterDate = [];
                 stockStatusList.forEach(item => {
-                    stockStatusFilterDate.push({ 'text': item['desc'], 'value': item['desc'] })
+                    stockStatusFilterDate.push({ 'text': item['desc'], 'value': item['code'] })
                 });
                 let filteredInfoTemp = {};
                 filteredInfoTemp['stockTypeFilterDate'] = stockTypeFilterDate;
                 filteredInfoTemp['stockStatusFilterDate'] = stockStatusFilterDate;
-                console.log("stockStatusFilterDate: " + JSON.stringify(stockStatusFilterDate));
-                console.log("stockTypeFilterDate: " + JSON.stringify(stockTypeFilterDate));
-                console.log("filteredInfoTemp: " + JSON.stringify(filteredInfoTemp));
+                // console.log("stockStatusFilterDate: " + JSON.stringify(stockStatusFilterDate));
+                // console.log("stockTypeFilterDate: " + JSON.stringify(stockTypeFilterDate));
+                // console.log("filteredInfoTemp: " + JSON.stringify(filteredInfoTemp));
                 setFilteredInfo(filteredInfoTemp);
             };
         }
@@ -102,27 +102,29 @@ const StockInfoListPage = () => {
         },
         {
             title: '股票类型',
-            width: 130,
+            width: 120,
             dataIndex: 'stock_type',
             key: 'stock_type',
             filters: filteredInfo['stockTypeFilterDate'],
             filteredValue: filteredInfoData.stock_type || null,
-            onFilter: (value, record) => record.stock_type.indexOf(value) === 0,
+            onFilter: (value, record) => record.stock_type === value,
+            render: text => stockTypeOptions.find(opt => opt.code === text)?.desc || '未知',
         },
         {
             title: '最短持有期',
             dataIndex: 'stock_minimum_holding_period',
             key: 'stock_minimum_holding_period',
-            width: 130,
+            width: 120,
         },
         {
             title: '股票状态',
             dataIndex: 'stock_status',
             key: 'stock_status',
-            width: 150,
+            width: 120,
             filters: filteredInfo['stockStatusFilterDate'],
             filteredValue: filteredInfoData.stock_status || null,
-            onFilter: (value, record) => record.stock_status.indexOf(value) === 0,
+            onFilter: (value, record) => record.stock_status === value,
+            render: text => stockStatusList.find(opt => opt.code === text)?.desc || '未知',
         },
         {
             title: '股票备注',
@@ -132,24 +134,24 @@ const StockInfoListPage = () => {
         {
             title: '操作',
             key: 'operation',
-            fixed: 'right',
             width: 150,
             render: (text, record) => {
-                const currentStockStatusDesc = record.stock_status;
-                const currentStockStatus =  Object.keys(stockStatusMap).find(key => stockStatusMap[key] === currentStockStatusDesc);
-                const btnTetx = currentStockStatus === '1' ? '清仓': currentStockStatus === '2' ? '启用': '异常';
+                const currentStockStatus = record.stock_status;
+                const toModifyStockStatus = currentStockStatus === 1 ? 2 : 1;
+                const currentStockName = record.stock_name;
+                const btnTetx = currentStockStatus === 1 ? '清仓' : currentStockStatus === 2 ? '启用' : '异常';
                 return (
                     <Space size="middle">
-                    <Typography.Link onClick={() => handleEditStock(record)}>
-                        编辑
-                    </Typography.Link>
-                    <Popconfirm title={`是否确定${btnTetx}?`} onConfirm={() => handleDeleteStock(currentStockStatus, record)}>
-                        <a>{btnTetx}</a>
-                    </Popconfirm>
-                    <Popconfirm title="是否确定删除?" onConfirm={() => handleDeleteStock(record)}>
-                        <a>删除</a>
-                    </Popconfirm>
-                </Space>
+                        <Typography.Link onClick={() => handleEditStock(record)}>
+                            编辑
+                        </Typography.Link>
+                        <Popconfirm title={`是否确定${btnTetx} [${currentStockName}]?`} okText="确定" cancelText="取消" onConfirm={() => handleSetStockStatus(toModifyStockStatus, record)}>
+                            <a>{btnTetx}</a>
+                        </Popconfirm>
+                        <Popconfirm title={`是否确定删除 [${currentStockName}]?`} okText="确定" cancelText="取消" onConfirm={() => handleDeleteStock(record)}>
+                            <a>删除</a>
+                        </Popconfirm>
+                    </Space>
                 )
             },
         },
@@ -166,12 +168,13 @@ const StockInfoListPage = () => {
                             if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
                                 setStocks(null);
                             } else {
-                                console.log("stockTypeMap: " + JSON.stringify(stockTypeMap));
+                                // console.log("stockTypeMap: " + JSON.stringify(stockTypeMap));
                                 const newStocks = stocks.map(item => ({
                                     ...item,
-                                    stock_type: stockTypeMap[item.stock_type] || '未知',
-                                    stock_status: stockStatusMap[item.stock_status] || '未知',
+                                    // stock_type: stockTypeMap[item.stock_type] || '未知',
+                                    // stock_status: stockStatusMap[item.stock_status] || '未知',
                                 }));
+                                // console.log("stock list after:" + JSON.stringify(newStocks));
                                 setStocks(newStocks);
                             }
                         }
@@ -203,14 +206,43 @@ const StockInfoListPage = () => {
 
     // 编辑
     const handleEditStock = (stock) => {
-        console.log("edit stock info: ", stock)
+        // console.log("edit stock info: ", stock)
         setEditingStock(stock);
         form.setFieldsValue(stock);
         setIsModalVisible(true);
     };
 
     const handleDeleteStock = (stock) => {
-        console.log("delete stock info: ", stock)
+        // console.log("delete stock info: ", stock)
+        api.post('/trade/delStockInfo', stock).then(response => {
+            // console.info("del response:" + JSON.stringify(response))
+            const delStock = response.data;
+            if (stocks.length > 0) {
+                const updatedStock = stocks.filter(item => item.id !== delStock.id);
+                setStocks(updatedStock);
+            }
+            message.success('删除成功');
+        }).catch(error => {
+            console.error('Error adding stock info:', error);
+            message.success('删除异常');
+        });
+    };
+
+    const handleSetStockStatus = (currentStockStatus, stock) => {
+        stock.stock_status = currentStockStatus;
+        // console.log("set stock status info: ", stock)
+        api.post('/trade/setStockStatus', stock).then(response => {
+            // console.info("reset stock status response:" + JSON.stringify(response))
+            const resetStock = response.data;
+            const updatedStock = stocks.map(stock =>
+                stock.id === resetStock.id ? { ...stock, ...resetStock } : stock
+            );
+            setStocks(updatedStock);
+            message.success('处理成功');
+        }).catch(error => {
+            console.error('Error set stock status:', error);
+            message.success('处理异常');
+        });
     };
 
     // 关闭弹窗
@@ -227,22 +259,38 @@ const StockInfoListPage = () => {
 
         if (editingStock) {
             // 编辑
-            console.info("edit value is: " + JSON.stringify(values));
-            const updatedStock = stocks.map(stock =>
-                stock.id === editingStock.id ? { ...stock, ...updatedValues } : stock
-            );
-            setStocks(updatedStock);
-            message.success('修改成功');
+            // console.info("edit value is: " + JSON.stringify(values));
+            api.post('/trade/editStockInfo', values).then(response => {
+                // console.info("edit response:" + JSON.stringify(response))
+                const editStock = response.data;
+                // console.info('before editStock is: ' + JSON.stringify(editStock));
+                const editStock1 = {
+                    ...editStock,
+                    // stock_status: stockStatusMap[editStock.stock_status] || '未知'
+                }
+                // console.info('after editStock is: ' + JSON.stringify(editStock1));
+                if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
+                    setStocks([editStock1]);
+                } else {
+                    const updatedStock = stocks.map(stock =>
+                        stock.id === editStock1.id ? { ...stock, ...editStock1 } : stock
+                    );
+                    setStocks(updatedStock);
+                }
+                message.success('修改成功');
+            }).catch(error => {
+                console.error('Error adding stock info:', error);
+                message.success('修改异常');
+            });
         } else {
-            console.info("add value is: " + JSON.stringify(values));
+            // console.info("add value is: " + JSON.stringify(values));
             api.post('/trade/addStockInfo', values).then(response => {
-                console.info("add response:" + JSON.stringify(response))
+                // console.info("add response:" + JSON.stringify(response))
                 const newStock = response.data;
                 console.info('before newStock is: ' + JSON.stringify(newStock));
                 const newStock1 = {
                     ...newStock,
-                    stock_type: stockTypeMap[newStock.stock_type] || '未知',
-                    stock_status: stockStatusMap[newStock.stock_status] || '未知'
+                    // stock_status: stockStatusMap[newStock.stock_status] || '未知'
                 }
                 console.info('after newStock is: ' + JSON.stringify(newStock1));
                 if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
@@ -253,6 +301,7 @@ const StockInfoListPage = () => {
                 message.success('新增成功');
             }).catch(error => {
                 console.error('Error adding stock info:', error);
+                message.success('新增异常');
             });
         }
 
@@ -296,6 +345,13 @@ const StockInfoListPage = () => {
                     onFinish={handleSubmit}
                     layout="vertical"
                 >
+                    <Form.Item
+                        name="id"
+                        label="id"
+                        hidden="true"
+                    >
+                        <Input />
+                    </Form.Item>
                     <Form.Item
                         name="stock_name"
                         label="股票名称"
