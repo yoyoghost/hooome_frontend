@@ -9,6 +9,7 @@ const HooomeBasicRoutes = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/" element={<LoginPage />} />
             <Route path="/trade/*" element={<HomePage />} />
+            <Route path="/trade" element={<HomePage />} />
         </Routes>
     </Router>
 );
