@@ -11,7 +11,7 @@ const StockInfoListPage = () => {
     useEffect(() => {
         const getStockTypes = async () => {
             try {
-                api.post('/trade/getStockType').then(
+                api.post('/trade/stockInfo/getStockType').then(
                     response => {
                         // console.info("getStockTypes: " + JSON.stringify(response.data));
                         const stockTypeMapTemp = response.data.reduce((acc, item) => {
@@ -32,7 +32,7 @@ const StockInfoListPage = () => {
 
         const getStockStatus = async () => {
             try {
-                api.post('/trade/getStockStatus').then(
+                api.post('/trade/stockInfo/getStockStatus').then(
                     response => {
                         // console.info("getStockStatus: " + JSON.stringify(response.data));
                         const stockStatusMapTemp = response.data.reduce((acc, item) => {
@@ -89,9 +89,6 @@ const StockInfoListPage = () => {
     const handleChange = (pagination, filters, sorter) => {
         setFilteredInfoData(filters);
     };
-
-    // TODO 删除后列表删除
-    // TODO 状态更新后列表状态更新，编辑后列表记录更新
 
     const columns = [
         {
@@ -162,7 +159,7 @@ const StockInfoListPage = () => {
         const getStockInfoList = async () => {
             if (stockTypeMap && stockStatusMap) {
                 try {
-                    api.post('/trade/getStockInfoList').then(
+                    api.post('/trade/stockInfo/getStockInfoList').then(
                         response => {
                             var stocks = response.data;
                             if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
@@ -214,7 +211,7 @@ const StockInfoListPage = () => {
 
     const handleDeleteStock = (stock) => {
         // console.log("delete stock info: ", stock)
-        api.post('/trade/delStockInfo', stock).then(response => {
+        api.post('/trade/stockInfo/delStockInfo', stock).then(response => {
             // console.info("del response:" + JSON.stringify(response))
             const delStock = response.data;
             if (stocks.length > 0) {
@@ -231,7 +228,7 @@ const StockInfoListPage = () => {
     const handleSetStockStatus = (currentStockStatus, stock) => {
         stock.stock_status = currentStockStatus;
         // console.log("set stock status info: ", stock)
-        api.post('/trade/setStockStatus', stock).then(response => {
+        api.post('/trade/stockInfo/setStockStatus', stock).then(response => {
             // console.info("reset stock status response:" + JSON.stringify(response))
             const resetStock = response.data;
             const updatedStock = stocks.map(stock =>
@@ -255,12 +252,10 @@ const StockInfoListPage = () => {
     };
 
     const handleSubmit = (values) => {
-        const updatedValues = { ...values };
-
         if (editingStock) {
             // 编辑
-            // console.info("edit value is: " + JSON.stringify(values));
-            api.post('/trade/editStockInfo', values).then(response => {
+            console.info("edit value is: " + JSON.stringify(values));
+            api.post('/trade/stockInfo/editStockInfo', values).then(response => {
                 // console.info("edit response:" + JSON.stringify(response))
                 const editStock = response.data;
                 // console.info('before editStock is: ' + JSON.stringify(editStock));
@@ -284,15 +279,14 @@ const StockInfoListPage = () => {
             });
         } else {
             // console.info("add value is: " + JSON.stringify(values));
-            api.post('/trade/addStockInfo', values).then(response => {
+            api.post('/trade/stockInfo/addStockInfo', values).then(response => {
                 // console.info("add response:" + JSON.stringify(response))
                 const newStock = response.data;
-                console.info('before newStock is: ' + JSON.stringify(newStock));
+                // console.info('before newStock is: ' + JSON.stringify(newStock));
                 const newStock1 = {
                     ...newStock,
                     // stock_status: stockStatusMap[newStock.stock_status] || '未知'
                 }
-                console.info('after newStock is: ' + JSON.stringify(newStock1));
                 if (stocks === null || !Array.isArray(stocks) || stocks.length === 0) {
                     setStocks([newStock1]);
                 } else {

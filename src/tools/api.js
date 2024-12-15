@@ -3,7 +3,8 @@ import axios from 'axios';
 // 创建一个 axios 实例
 // baseURL: 'http://127.0.0.1:6633/backend', // 你的后端 API 基础路径
 const instance = axios.create({
-  baseURL: '/backend', // 你的后端 API 基础路径
+  baseURL: 'http://127.0.0.1:6633/backend',
+  // baseURL: '/backend', // 你的后端 API 基础路径
   timeout: 5000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
