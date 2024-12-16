@@ -169,7 +169,9 @@ const TradeInfoListPage = () => {
   const [tradeInfoList, setTradeInfoList] = useState(null);
   useEffect(() => {
     const getTradeInfoList = async () => {
-      if (tradeType && stockList) {
+      console.log("tradeType: " + JSON.stringify(tradeType));
+      console.log("stockList: " + JSON.stringify(stockList));
+      if (tradeType && stockList && tradeType.length > 0) {
         try {
           api.post(tradeInfoBaseUrl + 'getInProgressTradeInfoList').then(
             response => {
@@ -204,6 +206,7 @@ const TradeInfoListPage = () => {
     setEditingData(null); // 重置编辑
     form.setFieldsValue({ stock_desc: undefined });
     form.setFieldsValue(initialData);
+    setTradeDate(dayjs().format('YYYY-MM-DD'));
     setIsModalVisible(true);
   };
 
@@ -219,6 +222,9 @@ const TradeInfoListPage = () => {
   const handleEdit = (data) => {
     const newEditData = {...data}
     console.log("edit data: ", newEditData)
+    // 回填日期
+    setTradeDate(data.trade_date);
+    form.setFieldsValue({ trade_date: data.trade_date });
     // 股票下拉框重新赋值
     newEditData.stock_desc = data.stock_name;
     // 操作类型重新赋值
@@ -252,12 +258,13 @@ const TradeInfoListPage = () => {
     setIsModalVisible(false);
     // 清除编辑的数据
     setEditingData(null);
+    form.resetFields(); // 清除告警等信息
     // 清除数据
     setStockId(null);
     setStockName(null);
     setTradeAmount(null);
     form.setFieldsValue({ stock_desc: undefined });
-    setTradeDate(null);
+    setTradeDate(dayjs().format('YYYY-MM-DD'));
   };
 
   const handleSubmit = (values) => {
@@ -307,7 +314,7 @@ const TradeInfoListPage = () => {
     setStockId(null);
     setStockName(null);
     setTradeAmount(null);
-    setTradeDate(null);
+    setTradeDate(dayjs().format('YYYY-MM-DD'));
   };
 
   // 新增或者编辑交易相关
@@ -366,6 +373,11 @@ const TradeInfoListPage = () => {
   const initialData = { 'trade_amount': null, 'trade_desc': null, 'trade_point': null, 'parent_trade_info_id': 0, 'trade_type': '1', 'trade_number': 10000};
   // 默认交易数量
   const tradeAmountOption = [{ value: 5000 }, { value: 10000 }, { value: 20000 },]
+  // 处理日期
+  const handleDateChange = (date, dateString) => {
+    setTradeDate(dateString);
+    form.setFieldsValue({ trade_date: dateString }); // 更新表单字段值
+  };
   return (
     <div>
       <Button type="primary" onClick={handleAdd} style={{ margin: '0px 0px 10px 0px' }}>
@@ -462,8 +474,9 @@ const TradeInfoListPage = () => {
               <DatePicker locale={zhCN}
                 maxDate={dayjs()}
                 format="YYYY-MM-DD"
-                defaultValue={dayjs()}
-                onChange={(date) => setTradeDate(date)}
+                value={dayjs(tradeDate)}
+                // defaultValue={}
+                onChange={handleDateChange}
               />
             </Space>
           </Form.Item>
