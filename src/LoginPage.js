@@ -1,6 +1,7 @@
 // src/LoginPage.js
 import React, { useState } from 'react';
 import { Form, Input, Button, message } from 'antd';
+import api from './tools/api.js';
 
 const LoginPage = () => {
   const [form] = Form.useForm();
@@ -9,11 +10,16 @@ const LoginPage = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // 模拟登录逻辑
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      message.success('登录成功');
-      // 重定向到首页
-      window.location.href = '/trade';
+      // 登录逻辑
+      api.post('/api/login', values).then(response => {
+        message.success('登录成功');
+        // 重定向到首页
+        window.location.href = '/trade';
+      }).catch(error => {
+        console.error('Error addTradeInfo: ', error);
+        const errorresp = error.response.data;
+        message.error(errorresp.message);
+      });
     } catch (error) {
       message.error('登录失败');
     } finally {
