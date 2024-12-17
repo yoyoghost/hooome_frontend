@@ -23,8 +23,9 @@ const StockInfoListPage = () => {
                     }
                 ).catch(error => {
                     console.error('get stock type error:', error);
+                    const errorresp = error.response.data;
+                    message.error(errorresp.message);
                 });
-
             } catch (error) {
                 console.error('Failed to fetch stockType:', error);
             }
@@ -44,6 +45,8 @@ const StockInfoListPage = () => {
                     }
                 ).catch(error => {
                     console.error('get stock status error:', error);
+                    const errorresp = error.response.data;
+                    message.error(errorresp.message);
                 });
 
             } catch (error) {
@@ -177,6 +180,8 @@ const StockInfoListPage = () => {
                         }
                     ).catch(error => {
                         console.error('get stock info list error:', error);
+                        const errorresp = error.response.data;
+                        message.error(errorresp.message);
                     });
                 } catch (error) {
                     console.error('Failed to fetch stockInfo list:', error);
@@ -221,7 +226,8 @@ const StockInfoListPage = () => {
             message.success('删除成功');
         }).catch(error => {
             console.error('Error adding stock info:', error);
-            message.success('删除异常');
+            const errorresp = error.response.data;
+            message.error(errorresp.message);
         });
     };
 
@@ -238,7 +244,8 @@ const StockInfoListPage = () => {
             message.success('处理成功');
         }).catch(error => {
             console.error('Error set stock status:', error);
-            message.success('处理异常');
+            const errorresp = error.response.data;
+            message.error(errorresp.message);
         });
     };
 
@@ -275,7 +282,8 @@ const StockInfoListPage = () => {
                 message.success('修改成功');
             }).catch(error => {
                 console.error('Error adding stock info:', error);
-                message.success('修改异常');
+                const errorresp = error.response.data;
+                message.error(errorresp.message);
             });
         } else {
             // console.info("add value is: " + JSON.stringify(values));
@@ -295,7 +303,8 @@ const StockInfoListPage = () => {
                 message.success('新增成功');
             }).catch(error => {
                 console.error('Error adding stock info:', error);
-                message.success('新增异常');
+                const errorresp = error.response.data;
+                message.error(errorresp.message);
             });
         }
 

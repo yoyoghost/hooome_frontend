@@ -16,11 +16,13 @@ const TradeInfoListPage = () => {
       try {
         api.post(stockBaseUrl + 'getDCStockInfoList').then(
           response => {
-            console.info("getDCStockInfoList: " + JSON.stringify(response.data));
+            // console.info("getDCStockInfoList: " + JSON.stringify(response.data));
             setStockList(response.data);
           }
         ).catch(error => {
           console.error('getDCStockInfoList error:', error);
+          const errorresp = error.response.data;
+          message.error(errorresp.message);
         });
 
       } catch (error) {
@@ -32,11 +34,13 @@ const TradeInfoListPage = () => {
       try {
         api.post(tradeCommonBaseUrl + 'getTradeType').then(
           response => {
-            console.info("getTradeType: " + JSON.stringify(response.data));
+            // console.info("getTradeType: " + JSON.stringify(response.data));
             setTradeType(response.data);
           }
         ).catch(error => {
           console.error('getTradeType error:', error);
+          const errorresp = error.response.data;
+          message.error(errorresp.message);
         });
 
       } catch (error) {
@@ -59,7 +63,7 @@ const TradeInfoListPage = () => {
         });
         let filteredInfoTemp = {};
         filteredInfoTemp['stockFilterDate'] = stockFilterDate;
-        console.log("filteredInfoTemp: " + JSON.stringify(filteredInfoTemp));
+        // console.log("filteredInfoTemp: " + JSON.stringify(filteredInfoTemp));
         setFilteredInfo(filteredInfoTemp);
       };
     }
@@ -143,7 +147,9 @@ const TradeInfoListPage = () => {
       key: 'operation',
       width: 150,
       render: (text, record) => {
+        // 是否可以编辑
         const isCanEdit = record.is_can_edit === 1;
+        // 删除信息提示
         const delInfo = record.stock_name + '-' + record.trade_point;
         return (
           <Space size="middle">
@@ -166,11 +172,12 @@ const TradeInfoListPage = () => {
     },
   ];
 
+  // 获取列表，依赖其他数据加载完成
   const [tradeInfoList, setTradeInfoList] = useState(null);
   useEffect(() => {
     const getTradeInfoList = async () => {
-      console.log("tradeType: " + JSON.stringify(tradeType));
-      console.log("stockList: " + JSON.stringify(stockList));
+      // console.log("tradeType: " + JSON.stringify(tradeType));
+      // console.log("stockList: " + JSON.stringify(stockList));
       if (tradeType && stockList && tradeType.length > 0) {
         try {
           api.post(tradeInfoBaseUrl + 'getInProgressTradeInfoList').then(
@@ -179,12 +186,14 @@ const TradeInfoListPage = () => {
               if (tradeInfoList === null || !Array.isArray(tradeInfoList) || tradeInfoList.length === 0) {
                 setTradeInfoList(null);
               } else {
-                console.log("tradeInfoList: " + JSON.stringify(tradeInfoList));
+                // console.log("tradeInfoList: " + JSON.stringify(tradeInfoList));
                 setTradeInfoList(tradeInfoList);
               }
             }
           ).catch(error => {
             console.error('get tradeInfoList error:', error);
+            const errorresp = error.response.data;
+            message.error(errorresp.message);
           });
         } catch (error) {
           console.error('Failed to fetch tradeInfoList:', error);
@@ -194,16 +203,31 @@ const TradeInfoListPage = () => {
     getTradeInfoList();
   }, [tradeType, stockList]);
 
+  // form
+  const [form] = Form.useForm();
+
   // 控制modal
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   // 控制编辑
   const [editingData, setEditingData] = useState(null);
-  const [form] = Form.useForm();
+
+  // 控制新增卖出
+  // sellData 新增的卖出的数据
+  // sellMainData 原买入的数据
+  const [sellData, setSellData] = useState(null);
+  const [sellMainData, setSellMianData] = useState(null);
+
+  // 买入点位，创建卖出时使用
+  const [buyPoint, setBuyPoint] = useState(null);
+  const [buyNumber, setBuyNumber] = useState(null);
+  // 控制表单字段是否展示
+  const [isBuyPointVisible, setIsBuyPointVisible] = useState({ display: 'none' });
 
   // 打开新增/编辑弹窗
   const handleAdd = () => {
     setEditingData(null); // 重置编辑
+    setSellData(null) // 重置新增卖出
     form.setFieldsValue({ stock_desc: undefined });
     form.setFieldsValue(initialData);
     setTradeDate(dayjs().format('YYYY-MM-DD'));
@@ -211,18 +235,37 @@ const TradeInfoListPage = () => {
   };
 
   // 处理卖出
+  // parent_trade_info_id
   const handleSell = (data) => {
-    console.log("sell data: ", data)
-    setEditingData(data);
-    form.setFieldsValue(data);
+    setEditingData(null); // 重置编辑
+    const sellData = { ...data }
+    // 交易父记录id
+    sellData.parent_trade_info_id = data.id;
+    // 展示购买点位/剩余可卖数量
+    setBuyPoint(data.trade_point);
+    setBuyNumber(data.trade_remaining_number);
+    sellData.trade_type = "2"; // 默认卖出
+    // 股票下拉框重新赋值
+    sellData.stock_desc = data.stock_name;
+    // 相关属性置为空
+    sellData.id = null;
+    sellData.trade_point = null;
+    sellData.trade_number = null;
+    // 交易金额重新赋值
+    sellData.trade_amount = null;
+    // console.log("sell data: ", sellData)
+    setSellData(sellData);
+    setIsBuyPointVisible({ display: 'block' });
+    form.setFieldsValue(sellData);
     setIsModalVisible(true);
   };
 
   // 编辑
   const handleEdit = (data) => {
-    const newEditData = {...data}
-    console.log("edit data: ", newEditData)
-    // 回填日期
+    setSellData(null) // 重置新增卖出
+    const newEditData = { ...data }
+    // console.log("edit data: ", newEditData)
+    // 回填交易日期
     setTradeDate(data.trade_date);
     form.setFieldsValue({ trade_date: data.trade_date });
     // 股票下拉框重新赋值
@@ -239,7 +282,7 @@ const TradeInfoListPage = () => {
   const handleDelete = (data) => {
     console.log("delete data: ", data)
     api.post(tradeInfoBaseUrl + 'delTradeInfo', data).then(response => {
-      console.info("del response:" + JSON.stringify(response))
+      // console.info("del response:" + JSON.stringify(response))
       const delData = response.data;
       if (tradeInfoList.length > 0) {
         const updatedDataList = tradeInfoList.filter(item => item.id !== delData.id);
@@ -247,8 +290,9 @@ const TradeInfoListPage = () => {
       }
       message.success('删除成功');
     }).catch(error => {
-      console.error('Error adding stock info:', error);
-      message.success('删除异常');
+      const errorresp = error.response.data;
+      console.error('Error addTradeInfo: ', error);
+      message.error(errorresp.message);
     });
   };
 
@@ -256,13 +300,21 @@ const TradeInfoListPage = () => {
   const handleCancel = () => {
     // 关闭弹窗
     setIsModalVisible(false);
+
     // 清除编辑的数据
     setEditingData(null);
-    form.resetFields(); // 清除告警等信息
-    // 清除数据
     setStockId(null);
     setStockName(null);
     setTradeAmount(null);
+
+    // 清除新建卖出相关
+    setSellData(null);
+    setIsBuyPointVisible({ display: 'none' });
+
+    // 清除告警等信息
+    form.resetFields();
+
+    // 重置默认日期
     form.setFieldsValue({ stock_desc: undefined });
     setTradeDate(dayjs().format('YYYY-MM-DD'));
   };
@@ -272,35 +324,53 @@ const TradeInfoListPage = () => {
       // 编辑
       console.info("edit value is: " + JSON.stringify(values));
       api.post(tradeInfoBaseUrl + 'editTradeInfo', values).then(response => {
-        console.info("edit response:" + JSON.stringify(response))
+        // console.info("edit response:" + JSON.stringify(response))
         const editData = response.data;
         if (tradeInfoList === null || !Array.isArray(tradeInfoList) || tradeInfoList.length === 0) {
           setTradeInfoList([editData]);
         } else {
-          const updatedStock = tradeInfoList.map(trade =>
+          const updatedTradeList = tradeInfoList.map(trade =>
             trade.id === editData.id ? { ...trade, ...editData } : trade
           );
-          setTradeInfoList(updatedStock);
+          setTradeInfoList(updatedTradeList);
         }
         message.success('修改成功');
       }).catch(error => {
-        console.error('Error editTradeInfo: ', error);
-        message.success('修改异常');
+        console.error('Error addTradeInfo: ', error);
+        const errorresp = error.response.data;
+        message.error(errorresp.message);
       });
     } else {
+      // 新增买入或者卖出
+      const currentTradetype = values.trade_type;
       console.info("add value is: " + JSON.stringify(values));
       api.post(tradeInfoBaseUrl + 'addTradeInfo', values).then(response => {
-        console.info("add response:" + JSON.stringify(response))
+        // console.info("add response:" + JSON.stringify(response))
         const newData = response.data;
-        if (tradeInfoList === null || !Array.isArray(tradeInfoList) || tradeInfoList.length === 0) {
-          setTradeInfoList([newData]);
+        // console.log("currentTradetype: " + currentTradetype);
+        if(currentTradetype === "1") {
+          if (tradeInfoList === null || !Array.isArray(tradeInfoList) || tradeInfoList.length === 0) {
+            setTradeInfoList([newData]);
+          } else {
+            setTradeInfoList([...tradeInfoList, newData]);
+          }
         } else {
-          setTradeInfoList([...tradeInfoList, newData]);
+          const tradeRemainingNumber = newData.trade_remaining_number;
+          if(tradeRemainingNumber === 0) {
+            const updatedDataList = tradeInfoList.filter(item => item.id !== newData.id);
+            setTradeInfoList(updatedDataList);
+          } else {
+            const updatedDataList = tradeInfoList.map(trade =>
+              trade.id === newData.id ? { ...trade, ...newData } : trade
+            );
+            setTradeInfoList(updatedDataList);
+          }
         }
         message.success('新增成功');
       }).catch(error => {
+        const errorresp = error.response.data;
         console.error('Error addTradeInfo: ', error);
-        message.success('新增异常');
+        message.error(errorresp.message);
       });
     }
 
@@ -314,7 +384,10 @@ const TradeInfoListPage = () => {
     setStockId(null);
     setStockName(null);
     setTradeAmount(null);
+
+    // 提交成功以后重置表单交易日期
     setTradeDate(dayjs().format('YYYY-MM-DD'));
+    form.setFieldsValue({ trade_date: dayjs().format('YYYY-MM-DD') });
   };
 
   // 新增或者编辑交易相关
@@ -326,7 +399,7 @@ const TradeInfoListPage = () => {
     form.validateFields(['trade_number', 'trade_point']).then((values) => {
       const { trade_number, trade_point } = values;
       const total = parseFloat(trade_number) * parseFloat(trade_point) / 1000;
-      console.log("total: " + total);
+      // console.log("total: " + total);
       setTradeAmount(total);
       // 手动标记字段为已触碰
       form.setFields([
@@ -339,7 +412,6 @@ const TradeInfoListPage = () => {
       ]);
       message.success('计算完成');
     }).catch((errorInfo) => {
-      console.log('验证失败:', errorInfo);
       message.error('请检查输入的数值');
     });
   }
@@ -370,7 +442,7 @@ const TradeInfoListPage = () => {
   // 初始化交易日期
   const [tradeDate, setTradeDate] = useState(dayjs().format('YYYY-MM-DD'));
   // 初始化表单数据
-  const initialData = { 'trade_amount': null, 'trade_desc': null, 'trade_point': null, 'parent_trade_info_id': 0, 'trade_type': '1', 'trade_number': 10000};
+  const initialData = { 'trade_amount': null, 'trade_desc': null, 'trade_point': null, 'parent_trade_info_id': 0, 'trade_type': '1', 'trade_number': 10000 };
   // 默认交易数量
   const tradeAmountOption = [{ value: 5000 }, { value: 10000 }, { value: 20000 },]
   // 处理日期
@@ -405,7 +477,7 @@ const TradeInfoListPage = () => {
         pagination={false}
       />
       <Modal
-        title={editingData ? '编辑交易信息' : '新增交易信息'}
+        title={editingData ? '编辑交易信息' : (sellData ? '新增卖出信息' : '新增交易信息')}
         open={isModalVisible}
         footer={null}
         mask='true'
@@ -414,7 +486,7 @@ const TradeInfoListPage = () => {
       >
         <Form
           form={form}
-          initialValues={editingData || initialData}
+          initialValues={editingData || sellData || initialData}
           onFinish={handleSubmit}
           layout="vertical"
         >
@@ -455,6 +527,7 @@ const TradeInfoListPage = () => {
             name="stock_desc"
             label="股票名称"
             rules={[{ required: true, message: '请选择一个交易对象!' }]}
+            layout="horizontal"
           >
             <Select placeholder="股票名称" onChange={handleStockInfo}>
               {stockList.map(option => (
@@ -469,6 +542,7 @@ const TradeInfoListPage = () => {
             label="交易日期"
             rules={[{ required: true, message: '请选择交易日期!' }]}
             initialValue={tradeDate}
+            layout="horizontal"
           >
             <Space>
               <DatePicker locale={zhCN}
@@ -483,18 +557,57 @@ const TradeInfoListPage = () => {
           <Form.Item
             name="trade_type"
             label="交易类型"
+            layout="horizontal"
+            rules={[{ required: true, message: '请选择交易类型!' }]}
           >
             <Radio.Group
               block
-              disabled
+              // disabled
               options={tradeTypeInfo}
               optionType="button"
             />
           </Form.Item>
+
+          {/* 买入点位 买入数量 */}
+          <Space.Compact style={isBuyPointVisible}>
+            <Form.Item
+              label="买入点位"
+              layout="horizontal"
+              style={{
+                display: 'inline-block',
+                width: '50%',
+              }}
+            >
+              <Input
+                count={{
+                  max: 1,
+                }}
+                variant="borderless" // 无边框
+                value={buyPoint}
+              />
+            </Form.Item>
+            <Form.Item
+              label="剩余可卖数量"
+              layout="horizontal"
+              style={{
+                display: 'inline-block',
+                width: '50%',
+              }}
+            >
+              <Input
+                count={{
+                  max: 1,
+                }}
+                variant="borderless" // 无边框
+                value={buyNumber}
+              />
+            </Form.Item>
+          </Space.Compact>
           <Form.Item
             name="trade_point"
             label="交易点位"
             rules={[{ required: true, message: '请输入交易点位!' }]}
+            layout="horizontal"
           >
             <InputNumber
               style={{
@@ -507,6 +620,7 @@ const TradeInfoListPage = () => {
             name="trade_number"
             label="交易数量"
             rules={[{ required: true, message: '请输入交易数量!' }]}
+            layout="horizontal"
           >
             {/* <InputNumber
               style={{
@@ -523,6 +637,7 @@ const TradeInfoListPage = () => {
             name="trade_amount"
             label="交易金额"
             rules={[{ required: true, message: '请输入交易金额!' }]}
+            layout="horizontal"
           >
             <Space.Compact style={{ width: '100%' }}>
               <Input placeholder="点击计算交易金额" value={tradeAmount} />
