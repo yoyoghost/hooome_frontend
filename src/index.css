@@ -52,3 +52,7 @@ html, body, #root {
   overflow: visible !important;
   min-height: 375px;
 }
+
+.ant-card-head {
+  border-bottom: 1px solid #1a1919dd !important; /* 修改为红色的2像素实线 */
+}

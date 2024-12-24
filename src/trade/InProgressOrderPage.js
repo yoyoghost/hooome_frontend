@@ -216,7 +216,6 @@ const TradeInfoListPage = () => {
   // sellData 新增的卖出的数据
   // sellMainData 原买入的数据
   const [sellData, setSellData] = useState(null);
-  const [sellMainData, setSellMianData] = useState(null);
 
   // 买入点位，创建卖出时使用
   const [buyPoint, setBuyPoint] = useState(null);
@@ -388,6 +387,10 @@ const TradeInfoListPage = () => {
     // 提交成功以后重置表单交易日期
     setTradeDate(dayjs().format('YYYY-MM-DD'));
     form.setFieldsValue({ trade_date: dayjs().format('YYYY-MM-DD') });
+
+    // 清除新建卖出相关
+    setSellData(null);
+    setIsBuyPointVisible({ display: 'none' });
   };
 
   // 新增或者编辑交易相关

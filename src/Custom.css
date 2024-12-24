@@ -1,0 +1,8 @@
+/* 自定义 CSS 类 */
+.hide-header .ant-table-thead {
+    display: none;
+}
+
+.fixed-height-card {
+    height: 600px;
+}
