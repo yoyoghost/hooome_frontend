@@ -6,3 +6,22 @@
 .fixed-height-card {
     height: 600px;
 }
+
+/* CustomTableStyles.css */
+.sub-table-custom-class {
+    /* 你的自定义样式 */
+    background-color: #df0f0f62;
+}
+
+.sub-table-custom-class .ant-table-thead>tr>th {
+    /* 表头样式 */
+    font-size: 14px;
+    font-weight: normal;
+    background-color: #0000002b;
+}
+
+.sub-table-custom-class .ant-table-tbody>tr>td {
+    /* 单元格样式 */
+    font-size: 14px;
+    background-color: #df0f0f62;
+}
